@@ -2,6 +2,67 @@ import sys
 import math as m
 import os.path 
 
+class readInput(object):
+  'this class reads a piped input'
+  def __init__(self):
+    pass
+  def getInput(self):
+    lines = []
+    Done = 0;
+    while not Done:
+      myline = input()
+      lines.append(myline)
+      if myline == "0 0":
+        Done = 1
+    return lines
+
+
+class GetMaps(object):
+  'this class reads the input file'
+
+  def __init__(self):
+    pass
+
+  def build(self):
+    lines = readInput().getInput()
+    assert len(lines) > 0, 'the file is empty!'
+    nline = 0
+    Done = False
+    mapObjs = []
+    while not Done:
+      firstLine = lines[nline].split()
+      nline += 1
+      N = int(firstLine[0])
+      M = int(firstLine[1])
+      if (M == 0 and N == 0):
+        break
+      assert (M>0 and N>0),'file format is wrong!'
+      block_i = []
+      block_j = []
+      S_i, S_j, T_i, T_j = 0 , 0 , 0 , 0
+      for j in range(N-1,-1,-1):
+        for i in range(M):
+          char = lines[nline][i]
+          if (char == '.'):
+            pass
+          elif (char == '#'):
+            block_i.append(i)
+            block_j.append(j)
+          elif (char == 'S'):
+            S_i = i
+            S_j = j
+          elif (char == 'T'):
+            T_i = i
+            T_j = j
+          else:
+            print("char: ", char)
+            assert 0,'Character %c NOT recognized!' % char
+        nline += 1
+      mapObjs.append(Map(M,N,block_i,block_j,Vertex(S_i,S_j,0,0),Vertex(T_i,T_j,0,0)))
+      del block_i
+      del block_j
+    return mapObjs
+
 class FileParser(object):
   'this class reads the input file'
 
@@ -184,10 +245,11 @@ class BFS(object):
 
 def main():
   # I'm keeping unnecessary things around
-  myMaps = FileParser('inFile.txt').Parse()
+  #myMaps = FileParser('inFile.txt').Parse()
+  myMaps = GetMaps().build()
   for maps in myMaps:
-    maps.printMap()
-    print()
+    #maps.printMap()
+    #print()
     G = Graph(maps)
     prob = BFS(G)
     short_dist = 1e20
@@ -202,7 +264,6 @@ def main():
       print("destination not reachable")
       print()
 
-print("__name__: ",__name__)
 if __name__ == "__main__":
   main()    
     

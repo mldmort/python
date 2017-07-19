@@ -1,5 +1,6 @@
 import math as m
 
-a = int(input("please input: "))
+#a = int(input("please input: "))
+a = input("please input: ")
 
-print("a+1: ",a+1," , type(a): ",type(a))
+print("a: ",a," , type(a): ",type(a))
