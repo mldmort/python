@@ -1,6 +1,7 @@
 import sys
 import math as m
 import os.path 
+import time
 
 class readInput(object):
   'this class reads a piped input'
@@ -183,26 +184,29 @@ class Graph(object):
     # all the posible verticies
     self.V = [Vertex(i,j,dir,col) for i in range(self.M) for j in range(self.N) for dir in range(self.dirSize) for col in range(self.colSize)]
     # Linked list of the verticies (connectivity) start with the id of the vertex (shouldn't have any duplicates in V)
-    self.LL = [[self.V.index(v)] for v in self.V]
+    self.LL = [[self.getInd(v)] for v in self.V]
 
     # build the LL
     for v in self.V:
-      ind = self.V.index(v)
+      ind = self.getInd(v)
       # change it to a for loop
-      self.LL[ind].append( self.getInd(Vertex(v.ip,v.jp,(v.dir+1)%self.dirSize,v.col)) )
-      self.LL[ind].append( self.getInd(Vertex(v.ip,v.jp,(v.dir-1)%self.dirSize,v.col)) )
+      self.LL[ind].append( self.getInd2(v.ip,v.jp,(v.dir+1)%self.dirSize,v.col) )
+      self.LL[ind].append( self.getInd2(v.ip,v.jp,(v.dir-1)%self.dirSize,v.col) )
       if ((v.dir == 0) and mapObj.isInside(v.ip,v.jp+1)): # north
-        self.LL[ind].append( self.getInd(Vertex(v.ip,v.jp+1,v.dir,(v.col+1)%self.colSize)) )
+        self.LL[ind].append( self.getInd2(v.ip,v.jp+1,v.dir,(v.col+1)%self.colSize) )
       elif ((v.dir == 1) and mapObj.isInside(v.ip-1,v.jp)): # west
-        self.LL[ind].append( self.getInd(Vertex(v.ip-1,v.jp,v.dir,(v.col+1)%self.colSize)) )
+        self.LL[ind].append( self.getInd2(v.ip-1,v.jp,v.dir,(v.col+1)%self.colSize) )
       elif ((v.dir == 2) and mapObj.isInside(v.ip,v.jp-1)): # south
-        self.LL[ind].append( self.getInd(Vertex(v.ip,v.jp-1,v.dir,(v.col+1)%self.colSize)) )
+        self.LL[ind].append( self.getInd2(v.ip,v.jp-1,v.dir,(v.col+1)%self.colSize) )
       elif ((v.dir == 3) and mapObj.isInside(v.ip+1,v.jp)): # east
-        self.LL[ind].append( self.getInd(Vertex(v.ip+1,v.jp,v.dir,(v.col+1)%self.colSize)) )
+        self.LL[ind].append( self.getInd2(v.ip+1,v.jp,v.dir,(v.col+1)%self.colSize) )
       
   def getInd(self,v):
-    return v.ip*self.N*self.dirSize*self.colSize + v.jp*self.dirSize*self.colSize + v.dir*self.colSize + v.col
+    return self.colSize*(self.dirSize*(v.ip*self.N + v.jp) + v.dir) + v.col
     
+  def getInd2(self,ip,jp,dir,col):
+    return ip*self.N*self.dirSize*self.colSize + jp*self.dirSize*self.colSize + dir*self.colSize + col
+
   def getVert(self,ind):
     return self.V[ind]
 
@@ -256,11 +260,11 @@ def main():
     for dir in range(4):
       short_dist = min(short_dist,prob.BFS_ShortDist(G.SV,Vertex(G.TV.ip,G.TV.jp,dir,0)))
     if (short_dist != -1):
-      print("Case #",myMaps.index(maps))
-      print("minimum time = ", short_dist, " sec")
+      print("Case #"+str(myMaps.index(maps)+1))
+      print("minimum time = " + str(short_dist) + " sec")
       print()
     else:
-      print("Case #",myMaps.index(maps))
+      print("Case #"+str(myMaps.index(maps)+1))
       print("destination not reachable")
       print()
 
