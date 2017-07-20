@@ -1,7 +1,7 @@
 import sys
-import math as m
-import os.path 
-import time
+#import math as m
+#import os.path 
+#import timeit
 
 class readInput(object):
   'this class reads a piped input'
@@ -68,7 +68,7 @@ class FileParser(object):
   'this class reads the input file'
 
   def __init__(self,inFile):
-    assert os.path.isfile(inFile),'The file does not exist!'
+    #assert os.path.isfile(inFile),'The file does not exist!'
     self.file = inFile
 
   def Parse(self):
@@ -138,20 +138,21 @@ class Map(object):
     self.TV = V_T
     self.Block_i = block_i
     self.Block_j = block_j
+    self.Inside_mat = [True for i in range(self.M) for j in range(self.N)]
+    for i in range(len(self.Block_i)):
+      ind_i = block_i[i]
+      ind_j = block_j[i]
+      ind_mat = ind_i*self.N + ind_j
+      self.Inside_mat[ind_mat] = False
+      
 
   def isInside(self,ip,jp):
-    if ((ip<0) or (jp<0) or (ip>=self.M) or (jp>=self.N)):
-      return False
-    elif (self.isBlock(ip,jp)):
-      return False
-    else:
-      return True
+    inside = True
+    inside = inside and ip>=0 and jp>=0 and ip<self.M and jp<self.N and self.Inside_mat[ip*self.N+jp]
+    return inside
     
   def isBlock(self,ip,jp):
-    for ind in range(len(self.Block_i)):
-      if ((ip==self.Block_i[ind]) and (jp==self.Block_j[ind])):
-        return True
-    return False
+    return (not self.Inside_mat[ip*self.N+jp])
 
   def printMap(self):
     for j in range(self.N-1,-1,-1):
@@ -187,19 +188,21 @@ class Graph(object):
     self.LL = [[self.getInd(v)] for v in self.V]
 
     # build the LL
+    setInd = self.getInd2
+    checkInside = mapObj.isInside
+    ipMove = [0, -1, 0, 1]
+    jpMove = [1, 0, -1, 0]
     for v in self.V:
-      ind = self.getInd(v)
+      vip = v.ip
+      vjp = v.jp
+      vdir = v.dir
+      vcol = v.col
+      ind = setInd(vip,vjp,vdir,vcol)
       # change it to a for loop
-      self.LL[ind].append( self.getInd2(v.ip,v.jp,(v.dir+1)%self.dirSize,v.col) )
-      self.LL[ind].append( self.getInd2(v.ip,v.jp,(v.dir-1)%self.dirSize,v.col) )
-      if ((v.dir == 0) and mapObj.isInside(v.ip,v.jp+1)): # north
-        self.LL[ind].append( self.getInd2(v.ip,v.jp+1,v.dir,(v.col+1)%self.colSize) )
-      elif ((v.dir == 1) and mapObj.isInside(v.ip-1,v.jp)): # west
-        self.LL[ind].append( self.getInd2(v.ip-1,v.jp,v.dir,(v.col+1)%self.colSize) )
-      elif ((v.dir == 2) and mapObj.isInside(v.ip,v.jp-1)): # south
-        self.LL[ind].append( self.getInd2(v.ip,v.jp-1,v.dir,(v.col+1)%self.colSize) )
-      elif ((v.dir == 3) and mapObj.isInside(v.ip+1,v.jp)): # east
-        self.LL[ind].append( self.getInd2(v.ip+1,v.jp,v.dir,(v.col+1)%self.colSize) )
+      self.LL[ind].append( setInd(vip,vjp,(vdir+1)%self.dirSize,vcol) )
+      self.LL[ind].append( setInd(vip,vjp,(vdir-1)%self.dirSize,vcol) )
+      if (checkInside(vip+ipMove[vdir],vjp+jpMove[vdir])):
+        self.LL[ind].append( setInd(vip+ipMove[vdir],vjp+jpMove[vdir],vdir,(vcol+1)%self.colSize) )
       
   def getInd(self,v):
     return self.colSize*(self.dirSize*(v.ip*self.N + v.jp) + v.dir) + v.col
@@ -252,8 +255,8 @@ def main():
   #myMaps = FileParser('inFile.txt').Parse()
   myMaps = GetMaps().build()
   for maps in myMaps:
-    #maps.printMap()
-    #print()
+    maps.printMap()
+    print()
     G = Graph(maps)
     prob = BFS(G)
     short_dist = 1e20
